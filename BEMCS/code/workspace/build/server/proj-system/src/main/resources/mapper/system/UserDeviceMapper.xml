@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.proj.system.mapper.UserDeviceMapper">
+    
+    <resultMap type="UserDevice" id="UserDeviceResult">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="projectId" column="project_id"/>
+        <result property="deviceId" column="device_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="userName" column="user_name"/>
+        <result property="projectName" column="project_name"/>
+        <result property="deviceName" column="device_name"/>
+    </resultMap>
+
+    <sql id="selectUserDeviceVo">
+        select ud.id, ud.user_id, ud.project_id, ud.device_id, ud.create_time, ud.update_time, ud.create_by, ud.update_by,
+        u.nick_name as user_name, p.project_name, d.device_name
+        from biz_user_device ud
+        left join sys_user u on u.user_id = ud.user_id
+        left join biz_project p on p.project_id = ud.project_id
+        left join biz_device d on d.device_id = ud.device_id
+    </sql>
+
+    <select id="selectUserDeviceList" parameterType="UserDevice" resultMap="UserDeviceResult">
+        <include refid="selectUserDeviceVo"/>
+        <where>
+            <if test="userId != null">
+                AND ud.user_id = #{userId}
+            </if>
+            <if test="projectId != null">
+                AND ud.project_id = #{projectId}
+            </if>
+            <if test="deviceId != null">
+                AND ud.device_id = #{deviceId}
+            </if>
+        </where>
+    </select>
+    
+    <select id="selectUserDeviceById" parameterType="Long" resultMap="UserDeviceResult">
+        <include refid="selectUserDeviceVo"/>
+        where ud.id = #{id}
+    </select>
+    
+    <select id="checkUserDeviceUnique" parameterType="UserDevice" resultMap="UserDeviceResult">
+        <include refid="selectUserDeviceVo"/>
+        where ud.user_id = #{userId} and ud.project_id = #{projectId} and ud.device_id = #{deviceId}
+    </select>
+    
+    <insert id="insertUserDevice" parameterType="UserDevice" useGeneratedKeys="true" keyProperty="id">
+        insert into biz_user_device(
+            <if test="userId != null">user_id,</if>
+            <if test="projectId != null">project_id,</if>
+            <if test="deviceId != null">device_id,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time
+        )values(
+            <if test="userId != null">#{userId},</if>
+            <if test="projectId != null">#{projectId},</if>
+            <if test="deviceId != null">#{deviceId},</if>
+            <if test="createBy != null">#{createBy},</if>
+            sysdate()
+        )
+    </insert>
+    
+    <delete id="deleteUserDeviceById" parameterType="Long">
+        delete from biz_user_device where id = #{id}
+    </delete>
+    
+</mapper> 

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.proj.system.mapper.AlarmMapper">
+    <insert id="insertAlarm" parameterType="Alarm" useGeneratedKeys="true" keyProperty="alarmId">
+        insert into biz_alarm
+        (data_type, data_value,alarm_time, project_id, device_id, remark, create_by, create_time, update_by, update_time)
+        values
+        (#{dataType},#{item.dataValue}, #{alarmTime}, #{projectId}, #{deviceId}, #{remark}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime})
+    </insert>
+
+    <insert id="batchInsertAlarm" parameterType="java.util.List">
+        insert into biz_alarm
+        (data_type,data_value, alarm_time, project_id, device_id, remark, create_by, create_time, update_by, update_time)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.dataType},#{item.dataValue}, #{item.alarmTime}, #{item.projectId}, #{item.deviceId}, #{item.remark}, #{item.createBy}, #{item.createTime}, #{item.updateBy}, #{item.updateTime})
+        </foreach>
+    </insert>
+
+    <resultMap id="AlarmResultMap" type="com.proj.system.domain.Alarm">
+        <id property="alarmId" column="alarm_id"/>
+        <result property="dataType" column="data_type"/>
+        <result property="dataValue" column="data_value"/>
+        <result property="alarmTime" column="alarm_time"/>
+        <result property="projectId" column="project_id"/>
+        <result property="deviceId" column="device_id"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="projectName" column="project_name"/>
+        <result property="deviceName" column="device_name"/>
+    </resultMap>
+
+    <select id="selectAlarmList" parameterType="Alarm" resultMap="AlarmResultMap">
+        select a.*, p.project_name, d.device_name
+        from biz_alarm a
+        left join biz_project p on a.project_id = p.project_id
+        left join biz_device d on a.device_id = d.device_id
+        <where>
+            <if test="dataType != null">and a.data_type = #{dataType}</if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(a.alarm_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(a.alarm_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+            <if test="deviceIds != null and deviceIds.size > 0">
+                and a.device_id in
+                <foreach collection="deviceIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        order by a.alarm_time desc
+    </select>
+</mapper> 

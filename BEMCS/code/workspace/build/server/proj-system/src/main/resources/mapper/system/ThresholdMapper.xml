@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.proj.system.mapper.ThresholdMapper">
+
+    <resultMap id="ThresholdResultMap" type="com.proj.system.domain.Threshold">
+        <id property="thresholdId" column="threshold_id"/>
+        <result property="dataType" column="data_type"/>
+        <result property="minValue" column="min_value"/>
+        <result property="maxValue" column="max_value"/>
+        <result property="unit" column="unit"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+    <!-- 查询阈值列表 -->
+    <select id="selectThresholdList" resultMap="ThresholdResultMap">
+        SELECT * FROM biz_threshold
+        <where>
+            <if test="dataType != null">
+                AND data_type = #{dataType}
+            </if>
+        </where>
+        ORDER BY threshold_id DESC
+    </select>
+
+    <!-- 查询单个阈值 -->
+    <select id="selectThresholdById" resultMap="ThresholdResultMap">
+        SELECT * FROM biz_threshold WHERE threshold_id = #{thresholdId}
+    </select>
+
+    <!-- 新增阈值 -->
+    <insert id="insertThreshold" parameterType="com.proj.system.domain.Threshold">
+        INSERT INTO biz_threshold
+        (data_type, min_value, max_value, unit, create_time, update_time, create_by, update_by)
+        VALUES
+        (#{dataType}, #{minValue}, #{maxValue}, #{unit}, NOW(), NOW(), #{createBy}, #{updateBy})
+    </insert>
+
+    <!-- 修改阈值 -->
+    <update id="updateThreshold" parameterType="com.proj.system.domain.Threshold">
+        UPDATE biz_threshold
+        SET min_value = #{minValue},
+            max_value = #{maxValue},
+            unit = #{unit},
+            update_time = NOW(),
+            update_by = #{updateBy}
+        WHERE threshold_id = #{thresholdId}
+    </update>
+
+    <!-- 删除阈值 -->
+    <delete id="deleteThresholdById" parameterType="Long">
+        DELETE FROM biz_threshold WHERE threshold_id = #{thresholdId}
+    </delete>
+
+    <!-- 校验数据类型唯一 -->
+    <select id="checkDataTypeUnique" resultType="int">
+        SELECT COUNT(1) FROM biz_threshold
+        WHERE data_type = #{dataType}
+        <if test="thresholdId != null">
+            AND threshold_id != #{thresholdId}
+        </if>
+    </select>
+</mapper> 

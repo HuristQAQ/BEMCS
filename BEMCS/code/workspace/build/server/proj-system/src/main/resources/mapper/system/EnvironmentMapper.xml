@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.proj.system.mapper.EnvironmentMapper">
+    
+    <resultMap type="Environment" id="EnvironmentResult">
+        <result property="dataId"    column="data_id"    />
+        <result property="dataType"    column="data_type"    />
+        <result property="dataValue"    column="data_value"    />
+        <result property="unit"    column="unit"    />
+        <result property="collectTime"    column="collect_time"    />
+        <result property="isCurrent"    column="is_current"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+    </resultMap>
+
+    <sql id="selectEnvironmentVo">
+        select data_id, data_type, data_value, unit, collect_time, is_current, create_time, update_time, create_by, update_by
+        from biz_environment_data
+    </sql>
+
+    <select id="selectEnvironmentList" parameterType="Environment" resultMap="EnvironmentResult">
+        <include refid="selectEnvironmentVo"/>
+        <where>  
+            <if test="dataType != null "> and data_type = #{dataType}</if>
+            <if test="isCurrent != null  and isCurrent != ''"> and is_current = #{isCurrent}</if>
+           
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(collect_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(collect_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+
+        </where>
+        order by collect_time desc
+    </select>
+    
+    <select id="selectEnvironmentByDataId" parameterType="Long" resultMap="EnvironmentResult">
+        <include refid="selectEnvironmentVo"/>
+        where data_id = #{dataId}
+    </select>
+
+    <select id="selectCurrentEnvironment" resultMap="EnvironmentResult">
+        <include refid="selectEnvironmentVo"/>
+        where is_current = '1'
+        order by data_type
+    </select>
+
+    <select id="selectHistoryEnvironment" parameterType="Environment" resultMap="EnvironmentResult">
+        <include refid="selectEnvironmentVo"/>
+        <where>
+            is_current = '0'
+            <if test="dataType != null "> and data_type = #{dataType}</if>
+            <!--<if test="params.beginTime != null and params.beginTime != ''">
+                and collect_time &gt;= #{params.beginTime}
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                and collect_time &lt;= #{params.endTime}
+            </if>-->
+
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(collect_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(collect_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+
+        </where>
+        order by collect_time desc
+    </select>
+
+    <select id="selectChartData" parameterType="Environment" resultMap="EnvironmentResult">
+        <include refid="selectEnvironmentVo"/>
+        <where>
+            <if test="dataType != null "> and data_type = #{dataType}</if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(collect_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(collect_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+        order by collect_time asc
+    </select>
+        
+    <insert id="insertEnvironment" parameterType="Environment" useGeneratedKeys="true" keyProperty="dataId">
+        insert into biz_environment_data
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="dataType != null">data_type,</if>
+            <if test="dataValue != null">data_value,</if>
+            <if test="unit != null">unit,</if>
+            <if test="collectTime != null">collect_time,</if>
+            <if test="isCurrent != null">is_current,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="dataType != null">#{dataType},</if>
+            <if test="dataValue != null">#{dataValue},</if>
+            <if test="unit != null">#{unit},</if>
+            <if test="collectTime != null">#{collectTime},</if>
+            <if test="isCurrent != null">#{isCurrent},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateEnvironment" parameterType="Environment">
+        update biz_environment_data
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="dataType != null">data_type = #{dataType},</if>
+            <if test="dataValue != null">data_value = #{dataValue},</if>
+            <if test="unit != null">unit = #{unit},</if>
+            <if test="collectTime != null">collect_time = #{collectTime},</if>
+            <if test="isCurrent != null">is_current = #{isCurrent},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where data_id = #{dataId}
+    </update>
+
+    <update id="updateAllCurrentToHistory">
+        update biz_environment_data set is_current = '0' where is_current = '1'
+    </update>
+
+    <delete id="deleteEnvironmentByDataId" parameterType="Long">
+        delete from biz_environment_data where data_id = #{dataId}
+    </delete>
+
+    <delete id="deleteEnvironmentByDataIds" parameterType="String">
+        delete from biz_environment_data where data_id in 
+        <foreach item="dataId" collection="array" open="(" separator="," close=")">
+            #{dataId}
+        </foreach>
+    </delete>
+</mapper> 
